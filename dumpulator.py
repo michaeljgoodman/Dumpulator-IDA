@@ -7,8 +7,7 @@ from ida_kernwin import Choose
 import ida_enum
 import ida_bytes
 import ida_netnode
-import requests
-import json
+
 from dumpulator import Dumpulator
 
 __AUTHOR__ = 'Micycle'
@@ -142,11 +141,11 @@ def global_settings():
 
 
 #--------------------------------------------------------------------------
-# Set xor key
+# dumpulate functions
 #--------------------------------------------------------------------------
 def set_arg1():
     """
-    Set xor key from selection
+    Set first argument
     """
     global first_arg
     #value = parse_highlighted_value("ERROR: Not a valid value selection\n")
@@ -212,7 +211,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
             ## Print a nice header
             print("You've taken your dump... It's time to play with it")
             # initialize the menu actions our plugin will inject
-            self._init_action_set_xor()
+            self._init_action_set_arg1()
             self._init_action_set_call_addr()
             # initialize plugin hooks
             self._init_hooks()
@@ -235,7 +234,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
         # unhook our plugin hooks
         self._hooks.unhook()
         # unregister our actions & free their resources
-        self._del_action_set_xor()
+        self._del_action_set_arg1()
         # done
         idaapi.msg("%s terminated...\n" % self.wanted_name)
 
@@ -243,20 +242,20 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
     #--------------------------------------------------------------------------
     # IDA Actions
     #--------------------------------------------------------------------------
-    ACTION_SET_XOR  = "dumpulate:setarg"
+    ACTION_SET_ARG1  = "dumpulate:setarg"
     ACTION_SET_CALL_ADDR = "dumpulate:setcalladdr"
     
-    def _init_action_set_xor(self):
+    def _init_action_set_arg1(self):
         """
         Register the set arg action with IDA.
         """
         action_desc = idaapi.action_desc_t(
-            self.ACTION_SET_XOR,         # The action name.
+            self.ACTION_SET_ARG1,         # The action name.
             "Dumpulate Set Arg",                     # The action text.
             IDACtxEntry(set_arg1),        # The action handler.
             None,                  # Optional: action shortcut
             "Set arg1"   # Optional: tooltip
-            #,XOR_ICON
+            
         )
         # register the action with IDA
         assert idaapi.register_action(action_desc), "Action registration failed"
@@ -271,7 +270,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
             IDACtxEntry(set_call_addr),        # The action handler.
             None,                  # Optional: action shortcut
             "Set call address"   # Optional: tooltip
-            #,XOR_ICON
+            
         )
         # register the action with IDA
         assert idaapi.register_action(action_desc), "Action registration failed"
@@ -279,8 +278,8 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
     def _del_action_set_call_addr(self):
         idaapi.unregister_action(self.ACTION_SET_CALL_ADDR)
 
-    def _del_action_set_xor(self):
-        idaapi.unregister_action(self.ACTION_SET_XOR)
+    def _del_action_set_arg1(self):
+        idaapi.unregister_action(self.ACTION_SET_ARG1)
 
     #--------------------------------------------------------------------------
     # Initialize Hooks
@@ -335,7 +334,7 @@ class Hooks(idaapi.UI_Hooks):
             idaapi.attach_action_to_popup(
                 form,
                 popup,
-                dumpulate_Plugin_t.ACTION_SET_XOR,
+                dumpulate_Plugin_t.ACTION_SET_ARG1,
                 "Dumpulate - set arg",
                 idaapi.SETMENU_APP,
             )
@@ -370,7 +369,7 @@ def inject_actions(form, popup, form_type):
         idaapi.attach_action_to_popup(
             form,
             popup,
-            dumpulate_Plugin_t.ACTION_SET_XOR,
+            dumpulate_Plugin_t.ACTION_SET_ARG1,
             "Dumpulate set arg",
             idaapi.SETMENU_APP
         )
