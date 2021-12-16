@@ -19,7 +19,7 @@ VERSION = '0.0.0'
 
 #temp stuff for big dumpy boi
 dp = Dumpulator("StringEncryptionFun_x64.dmp")
-CALL_ADDRESS = 0x140001000
+
 
 major, minor = map(int, idaapi.get_kernel_version().split("."))
 using_ida7api = (major > 6)
@@ -143,9 +143,9 @@ def global_settings():
 #--------------------------------------------------------------------------
 # dumpulate functions
 #--------------------------------------------------------------------------
-def set_arg1():
+def run_single_arg():
     """
-    Set first argument
+    Run with dumpulator single argument
     """
     global first_arg
     #value = parse_highlighted_value("ERROR: Not a valid value selection\n")
@@ -154,13 +154,15 @@ def set_arg1():
     if value is None:
         return False
     first_arg = value
-    idaapi.msg("arg1 set: %s\n" % value)
+    idaapi.msg("running with %s as single arg\n" % value)
     print(hex(value))
 
 
     temp_addr = dp.allocate(256)
-
-    dp.call(CALL_ADDRESS, [temp_addr, first_arg])
+    if CALL_ADDRESS:
+        dp.call(CALL_ADDRESS, [temp_addr, first_arg])
+    else:
+        idaapi.msg("Please set a call address first...")
 
     decrypted = dp.read_str(temp_addr)
 
@@ -176,6 +178,7 @@ def set_call_addr():
 
     if value is None:
         return False
+    global CALL_ADDRESS
     CALL_ADDRESS = value
 
     idaapi.msg("call address is set: %s\n" % value)
@@ -211,7 +214,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
             ## Print a nice header
             print("You've taken your dump... It's time to play with it")
             # initialize the menu actions our plugin will inject
-            self._init_action_set_arg1()
+            self._init_action_run_single_arg()
             self._init_action_set_call_addr()
             # initialize plugin hooks
             self._init_hooks()
@@ -234,7 +237,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
         # unhook our plugin hooks
         self._hooks.unhook()
         # unregister our actions & free their resources
-        self._del_action_set_arg1()
+        self._del_action_run_single_arg()
         # done
         idaapi.msg("%s terminated...\n" % self.wanted_name)
 
@@ -242,19 +245,19 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
     #--------------------------------------------------------------------------
     # IDA Actions
     #--------------------------------------------------------------------------
-    ACTION_SET_ARG1  = "dumpulate:setarg"
+    ACTION_RUN_SINGLE_ARG  = "dumpulate:setarg"
     ACTION_SET_CALL_ADDR = "dumpulate:setcalladdr"
     
-    def _init_action_set_arg1(self):
+    def _init_action_run_single_arg(self):
         """
         Register the set arg action with IDA.
         """
         action_desc = idaapi.action_desc_t(
-            self.ACTION_SET_ARG1,         # The action name.
-            "Dumpulate Set Arg",                     # The action text.
-            IDACtxEntry(set_arg1),        # The action handler.
+            self.ACTION_RUN_SINGLE_ARG,         # The action name.
+            "Dumpulate run with single arg",                     # The action text.
+            IDACtxEntry(run_single_arg),        # The action handler.
             None,                  # Optional: action shortcut
-            "Set arg1"   # Optional: tooltip
+            "Run with single arg"   # Optional: tooltip
             
         )
         # register the action with IDA
@@ -278,8 +281,8 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
     def _del_action_set_call_addr(self):
         idaapi.unregister_action(self.ACTION_SET_CALL_ADDR)
 
-    def _del_action_set_arg1(self):
-        idaapi.unregister_action(self.ACTION_SET_ARG1)
+    def _del_action_run_single_arg(self):
+        idaapi.unregister_action(self.ACTION_RUN_SINGLE_ARG)
 
     #--------------------------------------------------------------------------
     # Initialize Hooks
@@ -334,7 +337,7 @@ class Hooks(idaapi.UI_Hooks):
             idaapi.attach_action_to_popup(
                 form,
                 popup,
-                dumpulate_Plugin_t.ACTION_SET_ARG1,
+                dumpulate_Plugin_t.ACTION_RUN_SINGLE_ARG,
                 "Dumpulate - set arg",
                 idaapi.SETMENU_APP,
             )
@@ -369,7 +372,7 @@ def inject_actions(form, popup, form_type):
         idaapi.attach_action_to_popup(
             form,
             popup,
-            dumpulate_Plugin_t.ACTION_SET_ARG1,
+            dumpulate_Plugin_t.ACTION_RUN_SINGLE_ARG,
             "Dumpulate set arg",
             idaapi.SETMENU_APP
         )
