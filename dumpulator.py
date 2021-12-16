@@ -132,6 +132,7 @@ class dumpulate_Plugin_t(idaapi.plugin_t):
         self._hooks.unhook()
         # unregister our actions & free their resources
         self._del_action_run_single_arg()
+        self._del_action_set_call_addr()
         # done
         idaapi.msg("%s terminated...\n" % self.wanted_name)
 
