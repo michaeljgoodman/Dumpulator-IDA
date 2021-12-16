@@ -11,16 +11,14 @@ You can now go to Edit -> Plugins -> Dumpulate and this will prompt you to selec
 ## Currently only allows you to:
 For the example file found [here](https://github.com/mrexodia/dumpulator/releases/download/v0.0.1/StringEncryptionFun_x64.dmp) you can
 
-- Set your call address
-- Right click an address and select Dumpulator run with single arg
+- Set your call address and choose a number of arguments to pass
+- Right click an address, choose select argument, and then select which arg you'd like to pass it as
+- Right click and select allocate temporary space for any arg you'd like to monitor the output of
+- Finally right click and choose emulate function
 
-This will emulate the chosen call address, and pass the single value as the only argument.
+This will emulate the chosen call address, pass your assigned arguments, and output the passed addresses as strings if possible
 
 ## Future Work
-Dumpulator is a very dynamic solution so the emulation is going to be different for different function. For example, in this proof-of-concept, it only works for a function that takes in a buffer, and a single address.
+I feel that this could be more dynamic, and there are a lot more options and scenarios to account for than the basic string decryption POC.
 
-Once dumpulator's features are expanded, I'd like to create a somewhat dynamic solution for this plugin, whereby the plugin can recognise the number of args in a function, and let you map values and addresses to those args, then emulate.
-
-My current thoughts are on using `idc.get_screen_ea()` and `idaapi.get_arg_addrs()` to grab the addresses for a call of your function.
-
-We could set these as the initial args array, then as we know how many args we have, when you right click an address and `select arg` it can prompt you for a number. once you've set your args, you can run dumpulator and it will pass these values in.
+I will look into more dynamic ways of building your function argument structure, as well as ways of controlling what you monitor and how it is outputted, potentially with enums or comments as an option
