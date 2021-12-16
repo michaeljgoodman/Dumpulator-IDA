@@ -17,10 +17,6 @@ PLUGIN_HOTKEY = 'Alt+Shift+d'
 VERSION = '0.0.0'
 
 
-#temp stuff for big dumpy boi
-dp = Dumpulator("StringEncryptionFun_x64.dmp")
-
-
 major, minor = map(int, idaapi.get_kernel_version().split("."))
 using_ida7api = (major > 6)
 
@@ -29,7 +25,9 @@ using_ida7api = (major > 6)
 # Global settings
 #--------------------------------------------------------------------------
 def global_settings():
-    print("No settings yet.")
+    global DUMP_FILE
+    DUMP_FILE = ida_kernwin.ask_file(1, "*", "Enter the name of dump file:")
+    print("You have selected " + DUMP_FILE)
     return 
 
 
@@ -51,12 +49,12 @@ def run_single_arg():
     idaapi.msg("running with %s as single arg\n" % value)
     print(hex(value))
 
+    dp = Dumpulator(DUMP_FILE)
 
     temp_addr = dp.allocate(256)
-    if CALL_ADDRESS:
-        dp.call(CALL_ADDRESS, [temp_addr, first_arg])
-    else:
-        idaapi.msg("Please set a call address first...")
+
+    dp.call(CALL_ADDRESS, [temp_addr, first_arg])
+    
 
     decrypted = dp.read_str(temp_addr)
 

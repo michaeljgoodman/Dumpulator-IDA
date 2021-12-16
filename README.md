@@ -5,8 +5,8 @@ This project is a small POC plugin for launching dumpulator emulation within IDA
 
 Find the amazing dumpulator project by @mrexodia at [link](https://github.com/mrexodia/dumpulator)
 
-## Disclaimer
-The plugin currently just has a .dmp file address hardcoded into it, in such a way that said file must be in the same folder as your binary.
+## Configure
+You can now go to Edit -> Plugins -> Dumpulate and this will prompt you to select your dump file
 
 ## Currently only allows you to:
 - Set your call address
