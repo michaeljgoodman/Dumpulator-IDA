@@ -24,111 +24,6 @@ dp = Dumpulator("StringEncryptionFun_x64.dmp")
 major, minor = map(int, idaapi.get_kernel_version().split("."))
 using_ida7api = (major > 6)
 
-def copy_bytes_py3():
-    """
-    Copy selected bytes to clipboard
-    """
-    if using_ida7api:
-        start = idc.read_selection_start()
-        end = idc.read_selection_end()
-        if idaapi.BADADDR in (start, end):
-            ea = idc.here()
-            start = idaapi.get_item_head(ea)
-            end = idaapi.get_item_end(ea)
-        # fix encode bug reference 
-        # https://stackoverflow.com/questions/6624453/whats-the-correct-way-to-convert-bytes-to-a-hex-string-in-python-3
-        data = idc.get_bytes(start, end - start).hex()
-        print ("Bytes copied: %s" % data)
-        
-    else:
-        start = idc.SelStart()
-        end = idc.SelEnd()
-        if idaapi.BADADDR in (start, end):
-            ea = idc.here()
-            start = idaapi.get_item_head(ea)
-            end = idaapi.get_item_end(ea)
-        data = idc.GetManyBytes(start, end-start).hex()
-        print( "Bytes copied: %s" % data)
-    return data
-
-def parse_highlighted_value(error_message, print = True):
-    identifier = None
-    hash_value = None
-
-    v = ida_kernwin.get_current_viewer()
-    thing = ida_kernwin.get_highlight(v)
-    if thing and thing[1]:
-        identifier = thing[0]
-    if identifier == None:
-        idaapi.msg(error_message)
-        return None
-
-    # 64-bit immediates end with "i64", we need to strip these suffixes to parse the actual value
-    is_hex = False
-    if identifier.endswith('h'): # IDA View
-        identifier = identifier[:-1]
-        is_hex = True
-    else: # Pseudocode
-        if identifier.endswith('ui64'):
-            identifier = identifier[:-4]
-        elif identifier.endswith('i64'):
-            identifier = identifier[:-3]
-        elif identifier.endswith('u'):
-            identifier = identifier[:-1]
-        if identifier.startswith('0x'):
-            is_hex = True
-
-    if is_hex:
-        hash_value = int(identifier,16)
-        if print:
-            idaapi.msg("Hex value found %s\n" % hex(hash_value))
-    else:
-        hash_value = int(identifier)
-        if print:
-            idaapi.msg("Decimal value found %s\n" % hex(hash_value))
-    return hash_value
-
-
-def determine_highlighted_type_size(ea: int) -> int:
-    '''Guess the highlighted type and return the size in bytes.'''
-    type = idaapi.idc_guess_type(ea)
-    if type == '__int64':
-        return 8
-    if type == 'int':
-        return 4
-    if type == '__int16':
-        return 2
-    if type == 'char':
-        return 1
-    # If IDA couldn't guess the type (undefined, etc.) type will be empty
-    return 0
-
-
-def read_integer_from_db(ea: int, default_size: int = 0) -> int:
-    '''
-    Read the highlighted data from the database.
-    Returns: [value, size, was_type_valid]
-    '''
-    type_size = determine_highlighted_type_size(ea)
-    # 64-bit
-    if type_size == 8 or (not type_size and default_size == 8):
-        return [ida_bytes.get_64bit(ea), 8, bool(type_size)]
-    # 32-bit
-    if type_size == 4 or (not type_size and default_size == 4):
-        return [ida_bytes.get_32bit(ea), 4, bool(type_size)]
-    # 16-bit
-    if type_size == 2 or (not type_size and default_size == 2):
-        return [ida_bytes.get_16bit(ea), 2, bool(type_size)]
-    # 8-bit and "undefined" values
-    if type_size == 1 or (not type_size and not default_size) or (not type_size and default_size == 1):
-        return [ida_bytes.get_byte(ea), 1, bool(type_size)]
-
-    # Should never get executed
-    raise HashDBError(f"Failed to read integer from database at location: {hex(ea)} with size {default_size}.")
-
-
-
-
 
 #--------------------------------------------------------------------------
 # Global settings
@@ -136,7 +31,6 @@ def read_integer_from_db(ea: int, default_size: int = 0) -> int:
 def global_settings():
     print("No settings yet.")
     return 
-
 
 
 
