@@ -18,6 +18,13 @@ For the example file found [here](https://github.com/mrexodia/dumpulator/release
 
 This will emulate the chosen call address, pass your assigned arguments, and output the passed addresses as strings if possible
 
+## Limitations
+If you right click the variable within the function call line, you'll get the wrong address, so you have to be selecting it directly by clicking through to it.
+
+Additionally, I haven't yet coded this to support stack variables. I will need to confirm how that is coded with dumpulator, before I try and impliment.
+
+*The biggest limitation is that that's insanely buggy*
+
 ## Future Work
 I feel that this could be more dynamic, and there are a lot more options and scenarios to account for than the basic string decryption POC.
 
